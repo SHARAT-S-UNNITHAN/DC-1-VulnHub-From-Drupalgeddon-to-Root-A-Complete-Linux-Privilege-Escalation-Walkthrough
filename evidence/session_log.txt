@@ -1,0 +1,25 @@
+Session date: 2026-11-27 (IST, UTC+05:30)
+Target: 10.0.2.7 / DC-1 / "DC VulnHub"
+Target MAC: 08:00:27:03:92:83
+Attacker: 10.0.2.3/24 on eth0 (Kali, hostname kali)
+DC: 10.0.2.2 (MAC 08:00:27:66:DB:91) - all AD/DNS/KDC ports closed at start and finish; UNVERIFIED/DOWN
+Domain: unknown; target is a standalone Debian host, no AD evidence
+Authorization: owner/CTF lab; target-only scope plus read-only DC queries if it had come up
+Output: /home/shrdx/Documents/DC_VulnHub
+
+Tools observed:
+  Nmap 7.991
+  Metasploit Framework 6.5.5-dev
+  Gobuster 3.8.2
+  Nikto 2.6.1
+  WhatWeb 0.6.4
+  curl 8.22.0
+  OpenSSH client 10.6p1 Debian-1
+  Python 3.14.8
+
+Target result summary:
+  Open TCP: 22/tcp ssh, 80/tcp http, 111/tcp rpcbind, 48036/tcp rpc.statd
+  Open UDP: 111/udp rpcbind
+  Initial access: Drupal 7.24 CVE-2014-3704 (Drupalgeddon), form-cache method, www-data
+  Privesc: SUID /usr/bin/find -> /bin/bash -p, euid=0
+  Flags: 5/5 recovered

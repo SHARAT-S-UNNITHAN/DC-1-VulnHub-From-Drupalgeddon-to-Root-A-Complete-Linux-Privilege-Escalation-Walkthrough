@@ -1,0 +1,24 @@
+# Nmap 7.991 scan initiated Fri Nov 27 11:02:49 2026 as: /usr/lib/nmap/nmap --privileged -Pn -sU --top-ports 50 -T4 -oN /home/shrdx/Documents/DC_VulnHub/evidence/udp_top50.txt 10.0.2.7
+Nmap scan report for 10.0.2.7
+Host is up (0.00067s latency).
+Not shown: 34 open|filtered udp ports (no-response)
+PORT     STATE  SERVICE
+53/udp   closed domain
+67/udp   closed dhcps
+69/udp   closed tftp
+111/udp  open   rpcbind
+135/udp  closed msrpc
+138/udp  closed netbios-dgm
+631/udp  closed ipp
+996/udp  closed vsinet
+998/udp  closed puparp
+999/udp  closed applix
+1027/udp closed unknown
+1434/udp closed ms-sql-m
+1900/udp closed upnp
+2048/udp closed dls-monitor
+2049/udp closed nfs
+5353/udp closed zeroconf
+MAC Address: 08:00:27:03:92:83 (Oracle VirtualBox virtual NIC)
+
+# Nmap done at Fri Nov 27 11:03:01 2026 -- 1 IP address (1 host up) scanned in 11.42 seconds

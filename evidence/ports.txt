@@ -1,0 +1,12 @@
+# Nmap 7.991 scan initiated Fri Nov 27 11:02:25 2026 as: /usr/lib/nmap/nmap --privileged -Pn -p- -T4 --open -oN /home/shrdx/Documents/DC_VulnHub/evidence/ports.txt 10.0.2.7
+Nmap scan report for 10.0.2.7
+Host is up (0.00028s latency).
+Not shown: 65531 closed tcp ports (reset)
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+111/tcp   open  rpcbind
+48036/tcp open  unknown
+MAC Address: 08:00:27:03:92:83 (Oracle VirtualBox virtual NIC)
+
+# Nmap done at Fri Nov 27 11:02:40 2026 -- 1 IP address (1 host up) scanned in 15.12 seconds

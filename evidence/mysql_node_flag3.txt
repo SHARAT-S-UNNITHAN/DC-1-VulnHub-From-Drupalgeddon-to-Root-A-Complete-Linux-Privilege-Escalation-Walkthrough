@@ -1,0 +1,2 @@
+entity_id	body_value
+2	Special PERMS will help FIND the passwd - but you'll need to -exec that command to work out how to get what's in the shadow.

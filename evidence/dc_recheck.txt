@@ -1,0 +1,20 @@
+# Nmap 7.991 scan initiated Fri Nov 27 11:02:15 2026 as: /usr/lib/nmap/nmap --privileged -Pn -sV -p 53,88,135,139,389,445,464,636,3268,3269,5985 -oN /home/shrdx/Documents/DC_VulnHub/evidence/dc_recheck.txt 10.0.2.2
+Nmap scan report for 10.0.2.2
+Host is up (0.00026s latency).
+
+PORT     STATE  SERVICE          VERSION
+53/tcp   closed domain
+88/tcp   closed kerberos-sec
+135/tcp  closed msrpc
+139/tcp  closed netbios-ssn
+389/tcp  closed ldap
+445/tcp  closed microsoft-ds
+464/tcp  closed kpasswd5
+636/tcp  closed ldapssl
+3268/tcp closed globalcatLDAP
+3269/tcp closed globalcatLDAPssl
+5985/tcp closed wsman
+MAC Address: 08:00:27:66:DB:91 (Oracle VirtualBox virtual NIC)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Fri Nov 27 11:02:16 2026 -- 1 IP address (1 host up) scanned in 0.86 seconds

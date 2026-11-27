@@ -1,0 +1,106 @@
+WhatWeb report for [1m[34mhttp://10.0.2.7/[0m
+Status    : 200 OK
+Title     : [1m[33mWelcome to Drupal Site | Drupal Site[0m
+IP        : 10.0.2.7
+Country   : [1m[31mRESERVED, ZZ[0m
+
+Summary   : [1mApache[0m[[1m[32m2.2.22[0m], [1mContent-Language[0m[[0m[22men[0m], [1mDrupal[0m, [1mHTTPServer[0m[[1m[31mDebian Linux[0m][[1m[36mApache/2.2.22 (Debian)[0m], [1mJQuery[0m, [1mMetaGenerator[0m[[0m[22mDrupal 7 (http://drupal.org)[0m], [1mPasswordField[0m[[0m[22mpass[0m], [1mPHP[0m[[1m[32m5.4.45-0+deb7u14[0m], [1mScript[0m[[0m[22mtext/javascript[0m], [1mUncommonHeaders[0m[[0m[22mx-generator[0m], [1mX-Powered-By[0m[[0m[22mPHP/5.4.45-0+deb7u14[0m]
+
+Detected Plugins:
+[ [1mApache[0m ]
+	The Apache HTTP Server Project is an effort to develop and 
+	maintain an open-source HTTP server for modern operating 
+	systems including UNIX and Windows NT. The goal of this 
+	project is to provide a secure, efficient and extensible 
+	server that provides HTTP services in sync with the current 
+	HTTP standards. 
+
+	Version      : [1m[32m2.2.22[0m (from HTTP Server Header)
+	Google Dorks: (3)
+	Website     : http://httpd.apache.org/
+
+[ [1mContent-Language[0m ]
+	Detect the content-language setting from the HTTP header. 
+
+	String       : [1m[36men[0m
+
+[ [1mDrupal[0m ]
+	Drupal is an opensource CMS written in PHP. 
+
+	Aggressive function available (check plugin file or details).
+	Google Dorks: (1)
+	Website     : http://www.drupal.org
+
+[ [1mHTTPServer[0m ]
+	HTTP server header string. This plugin also attempts to 
+	identify the operating system from the server header. 
+
+	OS           : [1m[31mDebian Linux[0m
+	String       : [1m[36mApache/2.2.22 (Debian)[0m (from server string)
+
+[ [1mJQuery[0m ]
+	A fast, concise, JavaScript that simplifies how to traverse 
+	HTML documents, handle events, perform animations, and add 
+	AJAX. 
+
+	Website     : http://jquery.com/
+
+[ [1mMetaGenerator[0m ]
+	This plugin identifies meta generator tags and extracts its 
+	value. 
+
+	String       : [1m[36mDrupal 7 (http://drupal.org)[0m
+
+[ [1mPHP[0m ]
+	PHP is a widely-used general-purpose scripting language 
+	that is especially suited for Web development and can be 
+	embedded into HTML. This plugin identifies PHP errors, 
+	modules and versions and extracts the local file path and 
+	username if present. 
+
+	Version      : [1m[32m5.4.45-0+deb7u14[0m
+	Google Dorks: (3)
+	Website     : http://www.php.net/
+
+[ [1mPasswordField[0m ]
+	find password fields 
+
+	String       : [1m[36mpass[0m (from field name)
+
+[ [1mScript[0m ]
+	This plugin detects instances of script HTML elements and 
+	returns the script language/type. 
+
+	String       : [1m[36mtext/javascript[0m
+
+[ [1mUncommonHeaders[0m ]
+	Uncommon HTTP server headers. The blacklist includes all 
+	the standard headers and many non standard but common ones. 
+	Interesting but fairly common headers should have their own 
+	plugins, eg. x-powered-by, server and x-aspnet-version. 
+	Info about headers can be found at www.http-stats.com 
+
+	String       : [1m[36mx-generator[0m (from headers)
+
+[ [1mX-Powered-By[0m ]
+	X-Powered-By HTTP header 
+
+	String       : [1m[36mPHP/5.4.45-0+deb7u14[0m (from x-powered-by string)
+
+HTTP Headers:
+	HTTP/1.1 200 OK
+	Date: Fri, 27 Nov 2026 05:32:51 GMT
+	Server: Apache/2.2.22 (Debian)
+	X-Powered-By: PHP/5.4.45-0+deb7u14
+	Expires: Sun, 19 Nov 1978 05:00:00 GMT
+	Last-Modified: Fri, 27 Nov 2026 05:32:51 +0000
+	Cache-Control: no-cache, must-revalidate, post-check=0, pre-check=0
+	ETag: "1795757571"
+	Content-Language: en
+	X-Generator: Drupal 7 (http://drupal.org)
+	Vary: Accept-Encoding
+	Content-Encoding: gzip
+	Content-Length: 2269
+	Connection: close
+	Content-Type: text/html; charset=utf-8
+	

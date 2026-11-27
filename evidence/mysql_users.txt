@@ -1,0 +1,4 @@
+uid	name	pass	mail	status
+0				0
+1	admin	$S$DvQI6Y600iNeXRIeEMF94Y6FvN8nujJcEDTCP9nS5.i38jnEKuDR	admin@example.com	1
+2	Fred	$S$DWGrxef6.D0cwB5Ts.GlnLw15chRRWH2s1R3QBwC0EkvBQ/9TCGg	fred@example.org	1

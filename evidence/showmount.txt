@@ -1,0 +1,2 @@
+clnt_create: RPC: Program not registered
+program 100024 version 1 ready and waiting

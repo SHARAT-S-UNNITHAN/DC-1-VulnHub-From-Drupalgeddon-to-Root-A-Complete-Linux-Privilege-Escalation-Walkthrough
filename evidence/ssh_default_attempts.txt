@@ -1,0 +1,14 @@
+
+=== TRY admin / [admin] ===
+Warning: Permanently added '10.0.2.7' (ECDSA) to the list of known hosts.
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+admin@10.0.2.7: Permission denied (publickey,password).
+
+=== TRY admin / [] ===
+Warning: Permanently added '10.0.2.7' (ECDSA) to the list of known hosts.
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+admin@10.0.2.7: Permission denied (publickey,password).
