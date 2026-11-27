@@ -1,0 +1,98 @@
+DC VULNHUB (DC-1) - ANSWER KEY
+Target: 10.0.2.7
+Hostname: DC-1
+Assessment date: 2026-11-27
+Attacker: 10.0.2.3
+DC 10.0.2.2: UNVERIFIED / DOWN (all AD, DNS, and KDC ports closed at start and finish)
+
+No explicit questions were supplied with the engagement. The target contained
+five flag artefacts, so the answer key below maps each recovered flag to its
+exact source.
+
+------------------------------------------------------------------------------
+FLAG 1
+------------------------------------------------------------------------------
+Answer:
+Every good CMS needs a config file - and so do you.
+
+Source:
+/var/www/flag1.txt, read after obtaining a www-data shell.
+
+------------------------------------------------------------------------------
+FLAG 2
+------------------------------------------------------------------------------
+Answer:
+Brute force and dictionary attacks aren't the only ways to gain access
+(and you WILL need access). What can you do with these credentials?
+
+The same comment block contains the Drupal database credentials:
+database: drupaldb
+username: dbuser
+password: R0ck3t
+host: localhost
+
+Source:
+/var/www/sites/default/settings.php, comment beginning with "flag2" and the
+$databases array immediately below it.
+
+------------------------------------------------------------------------------
+FLAG 3
+------------------------------------------------------------------------------
+Answer:
+Special PERMS will help FIND the passwd - but you'll need to -exec that
+command to work out how to get what's in the shadow.
+
+Source:
+Drupal database drupaldb, table field_data_body, entity_id 2. The matching
+row in the node table is nid=2, title=flag3, type=page, status=0 (unpublished).
+
+------------------------------------------------------------------------------
+FLAG 4
+------------------------------------------------------------------------------
+Answer:
+Can you use this same method to find or access the flag in root?
+
+Probably. But perhaps it's not that easy.  Or maybe it is?
+
+Source:
+/home/flag4/flag4.txt, world-readable and owned by local user flag4.
+
+------------------------------------------------------------------------------
+FINAL FLAG
+------------------------------------------------------------------------------
+Answer:
+Well done!!!!
+
+Hopefully you've enjoyed this and learned some new skills.
+
+You can let me know what you thought of this little journey
+by contacting me via Twitter - @DCAU7
+
+Source:
+/root/thefinalflag.txt, read after escalating from www-data to euid=0 with
+the SUID /usr/bin/find binary.
+
+------------------------------------------------------------------------------
+ACCESS SUMMARY
+------------------------------------------------------------------------------
+Initial access:
+Drupal 7.24 pre-authentication SQL injection, CVE-2014-3704 (Drupalgeddon),
+form-cache PHP injection method. Shell ran as www-data on DC-1.
+
+Privilege escalation:
+/usr/bin/find was SUID root. Running
+/usr/bin/find . -maxdepth 0 -exec /bin/bash -p \; -quit
+produced euid=0(root). /bin/sh -p failed because Debian dash rejects -p.
+
+Credentials validated:
+dbuser:R0ck3t was validated against the local MySQL service through the
+www-data shell. It was not used to modify the database.
+
+Credentials not found:
+No working SSH password was found. Limited attempts with root:root,
+root:blank, flag4:flag4, and flag4:blank were all rejected.
+
+DC status:
+10.0.2.2 was reachable at the IP layer but had every checked AD, DNS, and KDC
+port closed. No domain queries were possible, and no DC evidence was mixed
+into the target evidence.

